@@ -1,0 +1,10 @@
+<?xml version="1.0" ?>
+<vbox xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+  <setting type="bool" pref="extensions.scriptlet-doctor.enabled" title="Force allow inline scripts">
+  </setting>
+  <setting type="bool" pref="extensions.scriptlet-doctor.limitToDomains" title="Limit to domains">
+  </setting>
+  <setting type="string" pref="extensions.scriptlet-doctor.domainList" title="Domain list">
+  Use ; as a delimiter for multiple domains
+  </setting>
+</vbox>

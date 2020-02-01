@@ -1,0 +1,36 @@
+{
+  "manifest_version": 2,
+  "name": "Scriptlet Doctor",
+  "version": "1.0.1",
+  "description": "Allow inline scripts regardless of site policy",
+  "author": "Off JustOff <Off.Just.Off@gmail.com>",
+  "homepage_url": "https://github.com/JustOff/scriptlet-doctor/",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "scriptlet-doctor@Off.JustOff",
+      "strict_min_version": "68.0",
+      "update_url": "https://raw.githubusercontent.com/JustOff/scriptlet-doctor/master/update.json"
+    }
+  },
+  "icons": {
+    "48": "icon.png"
+  },
+  "background": {
+    "scripts": [
+      "background.js"
+    ]
+  },
+  "browser_action": {
+    "default_icon": "skin/icoff.png",
+    "default_title": "Scriptlet Doctor"
+  },
+  "options_ui": {
+    "page": "options.html"
+  },
+  "permissions": [
+    "<all_urls>",
+    "webRequest",
+    "webRequestBlocking",
+    "storage"
+  ]
+}

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+body {
+    margin: 2em 3em;
+}
+label {
+    display: block;
+    margin: 1em 0;
+    line-height: 150%;
+}
+#domainList {
+    width: 100%;
+    padding: 0.3em;
+    margin-top: 0.5em;
+}
+</style>
+</head>
+<body>
+<label>
+    <input type="checkbox" id="enabled">
+    Force allow inline scripts
+</label>
+<label>
+    <input type="checkbox" id="limitToDomains">
+    Limit to domains
+</label>
+<label>
+    <input type="checkbox" disabled style="visibility:hidden">
+    Domain list (use ; as a delimiter):
+    <input type="text" id="domainList">
+</label>
+<script src="options.js"></script>
+</body>
+</html>
