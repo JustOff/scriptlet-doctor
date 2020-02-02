@@ -1,5 +1,5 @@
 @echo off
-set VER=1.0.1
+set VER=1.0.2
 
 sed -i -E "s/version>.+?</version>%VER%</" classic\install.rdf
 sed -i -E "s/version>.+?</version>%VER%</; s/download\/.+?\/(.+?)classic-.+?\.xpi/download\/%VER%\/\1classic-%VER%\.xpi/" update.xml
