@@ -3,6 +3,8 @@ Cu.import("resource://gre/modules/Services.jsm");
 
 var branch = "extensions.scriptlet-doctor.";
 var enabled, unhideToolbar, clearReportOnly, limitToDomains, domRegex = null, gWindowListener = null;
+var styleSheetService = Cc["@mozilla.org/content/style-sheet-service;1"].getService(Ci.nsIStyleSheetService);
+var styleSheetURI = Services.io.newURI("chrome://scriptlet-doctor/skin/scriptlet-doctor.css", null, null);
 
 function listTest(host) {
   if (domRegex === null) {
@@ -286,6 +288,10 @@ function startup(data, reason) {
   Cu.import("chrome://scriptlet-doctor/content/prefloader.js");
   PrefLoader.loadDefaultPrefs(data.installPath, "scriptlet-doctor.js");
 
+  if (!styleSheetService.sheetRegistered(styleSheetURI, styleSheetService.USER_SHEET)) {
+    styleSheetService.loadAndRegisterSheet(styleSheetURI, styleSheetService.USER_SHEET);
+  }
+
   var p = Services.prefs.getBranch(branch);
   clearReportOnly = p.getBoolPref("clearReportOnly");
   limitToDomains = p.getBoolPref("limitToDomains");
@@ -327,6 +333,10 @@ function shutdown(data, reason) {
   globalPrefsWatcher.unregister();
   if (enabled) {
     httpResponseObserver.unregister();
+  }
+
+  if (styleSheetService.sheetRegistered(styleSheetURI, styleSheetService.USER_SHEET)) {
+    styleSheetService.unregisterSheet(styleSheetURI, styleSheetService.USER_SHEET);
   }
 
   Cu.unload("chrome://scriptlet-doctor/content/prefloader.js");
