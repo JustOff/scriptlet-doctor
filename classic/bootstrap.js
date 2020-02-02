@@ -89,7 +89,7 @@ var button = {
         }
       }
       var nextItem = nextItemId && $(doc, nextItemId);
-      if (nextItem && nextItem.parentNode && nextItem.parentNode.id == toolbarId) {
+      if (nextItem && nextItem.parentNode && nextItem.parentNode.id.replace("-customization-target", "") == toolbarId) {
         toolbar.insertItem(this.meta.id, nextItem);
       } else {
         var ids = (toolbar.getAttribute("currentset") || "").split(",");
@@ -103,10 +103,20 @@ var button = {
         toolbar.insertItem(this.meta.id, nextItem);
       }
       if (unhideToolbar && toolbar.getAttribute("collapsed") == "true") {
-        w.setToolbarVisibility(toolbar, true);
+        try { w.setToolbarVisibility(toolbar, true); } catch(e) {}
       }
     }
     return b;
+  },
+  onCustomize : function (e) {
+    try {
+      var ucs = Services.prefs.getCharPref("browser.uiCustomization.state");
+      if ((/\"nav\-bar\"\:\[.*?\"scriptlet\-doctor\-button\".*?\]/).test(ucs)) {
+        Services.prefs.getBranch(branch).setCharPref("bar", "nav-bar");
+      } else {
+        button.setPrefs(null, null);
+      }
+    } catch(e) {}
   },
   afterCustomize : function (e) {
     var toolbox = e.target,
@@ -115,7 +125,7 @@ var button = {
     if (b) {
       var parent = b.parentNode;
       nextItem = b.nextSibling;
-      if (parent && parent.localName == "toolbar") {
+      if (parent && (parent.localName == "toolbar" || parent.classList.contains("customization-target"))) {
         toolbarId = parent.id;
         nextItemId = nextItem && nextItem.id;
       }
@@ -142,7 +152,7 @@ var button = {
   },
   setPrefs : function (toolbarId, nextItemId) {
     var p = Services.prefs.getBranch(branch);
-    p.setCharPref("bar", toolbarId || "");
+    p.setCharPref("bar", toolbarId == "nav-bar-customization-target" ? "nav-bar" : toolbarId || "");
     p.setCharPref("before", nextItemId || "");
   }
 };
@@ -173,12 +183,14 @@ var scrdIn = function (w) {
   return {
     init : function () {
       windowPrefsWatcher.register();
+      w.addEventListener("customizationchange", button.onCustomize, false);
       w.addEventListener("aftercustomization", button.afterCustomize, false);
       b.addEventListener("command", this.run, false);
       bImg(b, enabled ? "icon" : "icoff");
     },
     done : function () {
       windowPrefsWatcher.unregister();
+      w.removeEventListener("customizationchange", button.onCustomize, false);
       w.removeEventListener("aftercustomization", button.afterCustomize, false);
       b.removeEventListener("command", this.run, false);
       b.parentNode.removeChild(b);
