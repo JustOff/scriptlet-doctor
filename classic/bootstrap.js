@@ -18,24 +18,43 @@ function listTest(host) {
   return domRegex.test(host);
 }
 
+function updateCSP (csp) {
+  return csp.replace(/script-src.+?(;|$)/, m => {
+    m = m.replace(/ '(none|unsafe-hashes|strict-dynamic|nonce-.+?|sha[0-9]+-.+?=)'/g, "");
+    m = m.replace(/script-src(?!.+?'unsafe-inline')/, "script-src 'unsafe-inline'");
+    return m;
+  });
+}
+
 var httpResponseObserver = {
   observe: function (subject, topic, data) {
     if ((topic == "http-on-examine-response" || topic == "http-on-examine-cached-response") && subject instanceof Ci.nsIHttpChannel) {
+      try {
+        var ctype = subject.getResponseHeader("Content-Type");
+        if (ctype.toLowerCase().indexOf("text/html") == -1) {
+          return;
+        }
+      } catch (e) {}
       if (limitToDomains && !listTest(subject.URI.host)) {
         return;
       }
       try {
         var csp = subject.getResponseHeader("Content-Security-Policy");
-        csp = csp.replace(/script-src.+?(;|$)/, m => {
-            m = m.replace(/ '(none|unsafe-hashes|strict-dynamic|nonce-.+?|sha[0-9]+-.+?=)'/g, "");
-            m = m.replace(/script-src(?!.+?'unsafe-inline')/, "script-src 'unsafe-inline'");
-            return m;
-        });
-        subject.setResponseHeader("Content-Security-Policy", csp, false);
+        subject.setResponseHeader("Content-Security-Policy", updateCSP(csp), false);
       } catch (e) {}
       if (clearReportOnly) {
         subject.setResponseHeader("Content-Security-Policy-Report-Only", "", false);
       }
+      subject.QueryInterface(Ci.nsITraceableChannel);
+      var newListener = new TracingListener();
+      newListener.originalListener = subject.setNewListener(newListener);
+    }
+  },
+  QueryInterface: function (aIID) {
+    if (aIID.equals(Ci.nsIObserver) || aIID.equals(Ci.nsISupports)) {
+      return this;
+    } else {
+      throw Cr.NS_NOINTERFACE;
     }
   },
   register: function ()
@@ -49,6 +68,59 @@ var httpResponseObserver = {
     Services.obs.removeObserver(this, "http-on-examine-cached-response");
   }
 };
+
+function CCIN (cName, ifaceName) {
+  return Cc[cName].createInstance(Ci[ifaceName]);
+}
+
+function TracingListener () {
+  this.receivedData = [];
+}
+
+TracingListener.prototype = {
+  onDataAvailable: function (request, context, inputStream, offset, count) {
+    var binaryInputStream = CCIN("@mozilla.org/binaryinputstream;1", "nsIBinaryInputStream");
+    binaryInputStream.setInputStream(inputStream);
+    var data = binaryInputStream.readBytes(count);
+    this.receivedData.push(data);
+  },
+  onStartRequest: function (request, context) {
+    try {
+      this.originalListener.onStartRequest(request, context);
+    } catch (err) {
+      request.cancel(err.result);
+    }
+  },
+  onStopRequest: function (request, context, statusCode) {
+    var data = this.receivedData.join("");
+    try {
+      data = data.replace(/<meta\s+http-equiv(?:\s+)?=(?:\s+)?"Content-Security-Policy"\s+content(?:\s+)?=(?:\s+)?"(.+?)"(?:\s+)?>/gi,
+        (m, csp) => {
+          return "<meta http-equiv=\"Content-Security-Policy\" content=\"" + updateCSP(csp) + "\">";
+        });
+    } catch (e) {}
+    var storageStream = CCIN("@mozilla.org/storagestream;1", "nsIStorageStream");
+    storageStream.init(8192, data.length, null);
+    var os = storageStream.getOutputStream(0);
+    if (data.length > 0) {
+      os.write(data, data.length);
+    }
+    os.close();
+    try {
+      this.originalListener.onDataAvailable(request, context, storageStream.newInputStream(0), 0, data.length);
+    } catch (e) {}
+    try {
+      this.originalListener.onStopRequest(request, context, statusCode);
+    } catch (e) {}
+  },
+  QueryInterface: function (aIID) {
+    if (aIID.equals(Ci.nsIStreamListener) || aIID.equals(Ci.nsISupports)) {
+      return this;
+    } else {
+      throw Cr.NS_NOINTERFACE;
+    }
+  }
+}
 
 function $(node, childId) {
   if (node.getElementById) {
