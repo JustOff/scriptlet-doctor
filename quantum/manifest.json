@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Scriptlet Doctor",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Allow inline scripts regardless of site policy",
   "author": "Off JustOff <Off.Just.Off@gmail.com>",
   "homepage_url": "https://github.com/JustOff/scriptlet-doctor/",
