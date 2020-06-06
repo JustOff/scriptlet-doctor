@@ -195,8 +195,16 @@ const filterDocument = (function() {
     let csp = doc.querySelector(
       'meta[http-equiv="Content-Security-Policy" i][content]'
     );
-    if (csp && csp.content) {
+    if ( csp && csp.content ) {
       csp.content = updateCSP(csp.content);
+    } else if ( filterer.csp !== undefined ) {
+        let heads = doc.getElementsByTagName('head');
+        if ( heads && heads[0] ) {
+          let meta = doc.createElement('meta');
+          meta.httpEquiv = "Content-Security-Policy";
+          meta.content = updateCSP(filterer.csp);
+          heads[0].appendChild(meta);
+        }
     } else {
       return streamClose(filterer);
     }
@@ -225,7 +233,7 @@ const filterDocument = (function() {
     filterers.delete(this);
   };
 
-  return function(details) {
+  return function(details, csp) {
     // https://github.com/gorhill/uBlock/issues/3478
     const statusCode = details.statusCode || 0;
     if ( statusCode !== 0 && (statusCode < 200 || statusCode >= 300) ) {
@@ -236,7 +244,8 @@ const filterDocument = (function() {
       stream: undefined,
       buffer: null,
       mime: 'text/html',
-      charset: undefined
+      charset: undefined,
+      csp: undefined
     };
 
     const headers = details.responseHeaders;
@@ -254,6 +263,10 @@ const filterDocument = (function() {
     // https://bugzilla.mozilla.org/show_bug.cgi?id=1426789
     if ( headerValueFromName('content-disposition', headers) ) { return; }
 
+    if ( csp !== undefined ) {
+      request.csp = csp;
+    }
+
     const stream = request.stream =
       browser.webRequest.filterResponseData(details.requestId);
     stream.ondata = onStreamData;
@@ -266,12 +279,15 @@ const filterDocument = (function() {
 })();
 
 function updateResponse(details) {
-  filterDocument(details);
-  details.responseHeaders.forEach(header => {
-    if (header.name.toLowerCase() == "content-security-policy") {
-      header.value = updateCSP(header.value);
+  var csp = undefined;
+  for (var i = 0; i < details.responseHeaders.length; ++i) {
+    if (details.responseHeaders[i].name.toLowerCase() == "content-security-policy") {
+      csp = details.responseHeaders[i].value;
+      details.responseHeaders.splice(i, 1);
+      break;
     }
-  });
+  }
+  filterDocument(details, csp);
   return {responseHeaders: details.responseHeaders};
 }
 
