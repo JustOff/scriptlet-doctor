@@ -3,10 +3,10 @@
   "scriptlet-doctor@Off.JustOff": {
    "updates": [
     {
-     "version": "1.1.1",
+     "version": "1.2.0",
      "browser_specific_settings": { "gecko": { "strict_min_version": "68" } },
-     "update_info_url": "https://github.com/JustOff/scriptlet-doctor/releases/tag/1.1.1",
-     "update_link": "https://github.com/JustOff/scriptlet-doctor/releases/download/1.1.1/scriptlet-doctor-quantum-1.1.1.xpi"
+     "update_info_url": "https://github.com/JustOff/scriptlet-doctor/releases/tag/1.2.0",
+     "update_link": "https://github.com/JustOff/scriptlet-doctor/releases/download/1.2.0/scriptlet-doctor-quantum-1.2.0.xpi"
     }
    ]
   }
