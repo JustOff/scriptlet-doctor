@@ -29,6 +29,9 @@ function updateCSP (csp) {
 var httpResponseObserver = {
   observe: function (subject, topic, data) {
     if ((topic == "http-on-examine-response" || topic == "http-on-examine-cached-response") && subject instanceof Ci.nsIHttpChannel) {
+      if (subject.responseStatus != 200) {
+        return;
+      }
       try {
         var ctype = subject.getResponseHeader("Content-Type");
         if (ctype.toLowerCase().indexOf("text/html") == -1) {
