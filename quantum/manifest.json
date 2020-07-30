@@ -18,6 +18,7 @@
   "background": {
     "scripts": [
       "background.js",
+      "issemver.js",
       "text-encode.js"
     ]
   },

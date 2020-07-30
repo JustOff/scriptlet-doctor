@@ -24,7 +24,7 @@
 */
 
 var defaultDomains = "yandex.by;yandex.kz;yandex.ru;yandex.ua;yandex.uz;yandex.net;yastatic.net";
-var enabled = false, limitToDomains, domainPattern;
+var enabled = false, limitToDomains, domainPattern, bug1635781;
 
 function updateCSP(csp) {
   return csp.replace(/script-src.+?(;|$)/, m => {
@@ -282,8 +282,12 @@ function updateResponse(details) {
   var csp = undefined;
   for (var i = 0; i < details.responseHeaders.length; ++i) {
     if (details.responseHeaders[i].name.toLowerCase() == "content-security-policy") {
-      csp = details.responseHeaders[i].value;
-      details.responseHeaders.splice(i, 1);
+      if (bug1635781) {
+        csp = details.responseHeaders[i].value;
+        details.responseHeaders.splice(i, 1);
+      } else {
+        details.responseHeaders[i].value = updateCSP(details.responseHeaders[i].value);
+      }
       break;
     }
   }
@@ -360,6 +364,10 @@ function storageListener(changes) {
     restartScDoctor();
   }
 }
+
+browser.runtime.getBrowserInfo().then(info => {
+  bug1635781 = isSemVer(info.version, ">= 77.0a1", "< 78.1");
+});
 
 browser.storage.onChanged.addListener(storageListener);
 browser.browserAction.onClicked.addListener(buttonListener);
