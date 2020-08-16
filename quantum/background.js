@@ -23,7 +23,7 @@
     Home: https://github.com/JustOff/scriptlet-doctor
 */
 
-var defaultDomains = "yandex.by;yandex.kz;yandex.ru;yandex.ua;yandex.uz;yandex.net;yastatic.net";
+var defaultDomains = "yandex.by;yandex.kz;yandex.ru;yandex.ua;yandex.uz;yandex.net;yastatic.net;auto.ru";
 var enabled = false, limitToDomains, domainPattern, bug1635781;
 
 function updateCSP(csp) {
@@ -376,7 +376,8 @@ browser.storage.local.get(["enabled", "limitToDomains", "domainList", "defaultDo
   if (res.defaultDomains != defaultDomains) {
     browser.storage.local.set({"defaultDomains": defaultDomains});
   }
-  if (res.domainList === undefined) {
+  if (res.domainList === undefined ||
+      (res.domainList == res.defaultDomains && res.defaultDomains != defaultDomains)) {
     browser.storage.local.set({"domainList": defaultDomains});
   } else {
     updateDomainList(res.domainList);
