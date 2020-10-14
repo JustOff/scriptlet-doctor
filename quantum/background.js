@@ -304,7 +304,7 @@ function enableScDoctor(updateIcon = true) {
   }
   browser.webRequest.onHeadersReceived.addListener(
     updateResponse,
-    {urls : matchPattern, types: ["main_frame", "sub_frame"]},
+    {urls : matchPattern, types: ["main_frame", "sub_frame", "xmlhttprequest"]},
     ["blocking", "responseHeaders"]
   );
   if (updateIcon) {
