@@ -99,7 +99,7 @@ TracingListener.prototype = {
     try {
       data = data.replace(/<meta\s+http-equiv(?:\s+)?=(?:\s+)?"Content-Security-Policy"\s+content(?:\s+)?=(?:\s+)?"(.+?)"(?:\s+)?>/gi,
         (m, csp) => {
-          return "<meta http-equiv=\"Content-Security-Policy\" content=\"" + updateCSP(csp) + "\">";
+          return "<meta http-equiv=\"Content-Security-Policy\" content=\"" + updateCSP(csp.replace(/&#x27;/g, "'")) + "\">";
         });
     } catch (e) {}
     var storageStream = CCIN("@mozilla.org/storagestream;1", "nsIStorageStream");

@@ -196,13 +196,13 @@ const filterDocument = (function() {
       'meta[http-equiv="Content-Security-Policy" i][content]'
     );
     if ( csp && csp.content ) {
-      csp.content = updateCSP(csp.content);
+      csp.content = updateCSP(csp.content.replace(/&#x27;/g, "'"));
     } else if ( filterer.csp !== undefined ) {
         let heads = doc.getElementsByTagName('head');
         if ( heads && heads[0] ) {
           let meta = doc.createElement('meta');
           meta.httpEquiv = "Content-Security-Policy";
-          meta.content = updateCSP(filterer.csp);
+          meta.content = updateCSP(filterer.csp.replace(/&#x27;/g, "'"));
           heads[0].appendChild(meta);
         }
     } else {
